@@ -11,8 +11,8 @@ mass = 100000
 w = 3000
 dm = peng / w
 
-def goal(time):
-    res = m.pi/400*time
+def goal(alt):
+    res = alt*m.pi/400
     return res
 
 def aero_force(V,a):
@@ -30,8 +30,8 @@ def aero_force(V,a):
 
 
 def thrust(P_, ang):
-    mas = np.array([m.cos(-ang),
-                    m.sin(-ang)])
+    mas = np.array([m.cos(ang),
+                    -m.sin(ang)])
     return P_ * mas
 
 
@@ -82,9 +82,9 @@ h = 0.01
 
 
 
-#pid = pid_class(h,0,10,0.1,4)
-pid = pid_class(h,0,0.1,0,0)
-while mass > 40000:
+pid = pid_class(h,0,1,0.1,4)
+
+while mass > 50000:
     t_list.append(t)
     x_list.append(Pos[0])
     y_list.append(Pos[1])
@@ -96,14 +96,15 @@ while mass > 40000:
     R = aero_force(Vel, attack_angle)
     NQ = rot_2(R, attack_angle)
 
-    goal_pitch = goal(t)
-    goal_alt = 200000*np.exp(-0.00001*Pos[0])*(np.exp(0.00001*Pos[0])-1)
+    goal_pitch = goal(Pos[1]/1000)
+    print(goal_pitch)
 
     pid.update_goal(goal_pitch)
 
     goal_phi = pid.gen_signal(pitch)
-    if abs(phi > 4*m.pi/180):
-        goal_phi = 4*m.pi/180*abs(phi)/phi
+
+    if abs(goal_phi) > 4*m.pi/180:
+        goal_phi = 4*m.pi/180*np.sign(goal_phi)
 
 
     beta = beta + engine_move(goal_phi-phi,beta)*h
@@ -119,22 +120,16 @@ while mass > 40000:
     omega = omega + (P[1] * 30 / 1e9 - NQ[1] * 15*attack_angle / 1e9) * h
 
     pitch = pitch + omega * h
-    test_list.append(goal_pitch-pitch)
+
     Vel = Vel + (rot_1(R, vel_ang) + rot_1(P, pitch) + mass * g) * h / mass
 
     Pos = Pos + Vel * h
     mass = mass - dm * h
     t = t + h
+    test_list.append(m.sin(phi))
 
-def treck(x):
-
-    y = 200000*np.exp(-0.00001*x)*(np.exp(0.00001*x)-1)
-    return y
-
-x_theor = np.linspace(0, 50000, num=10000)
 plt.plot(x_list, y_list)
-plt.plot(x_theor, treck(x_theor))
-plt.axis('equal')
+
 plt.show()
 plt.plot(t_list, test_list)
 
