@@ -19,8 +19,9 @@ def aero_force(V,a,h):
     CY = 2
     CX = 0.2
     w=0
-    w = 15+(0.1*h)**2
-    wind = np.array([w, 0])
+    w = 15+0.5*(h)**2
+    print(w)
+    wind = np.array([-w, 0])
 
     if norm(V) < 0.5: a=a - m.pi/2
     else: a=a-m.atan(norm(wind)/norm(V))
@@ -64,7 +65,7 @@ def atan(vec):
     return res
 
 def engine_move(dang, beta):
-    u_max = 2;
+    u_max = 0.1;
     u = u_max * np.sign(dang - beta*abs(beta)/(2*u_max))
 
     return u
@@ -76,6 +77,8 @@ test_list2 = list()
 test_list3 = list()
 test_list4 = list()
 test_list5 = list()
+test_list6 = list()
+test_list7 = list()
 Vel = np.array([0, 0])
 Pos = np.array([0, 0])
 omega = 0
@@ -94,7 +97,9 @@ h = 0.01
 pid = pid_class(h,0,1,0.1,4)
 
 while mass > 50000:
-    if Pos[1] < 0: break
+    if Vel[1] < 0:
+        print('Falling')
+        break
     t_list.append(t)
     x_list.append(Pos[0])
     y_list.append(Pos[1])
@@ -111,15 +116,15 @@ while mass > 50000:
 
 
     NQ = rot_2(R, attack_angle)
-    test_list4.append(R[0])
-    test_list5.append(rot_1(R, vel_ang)[1])
+
     goal_pitch = goal(Pos[1]/1000)
 
 
-    pid.update_goal(m.pi/12)
+
+
+    pid.update_goal(goal_pitch)
 
     goal_phi = pid.gen_signal(pitch)
-
     if abs(goal_phi) > 4*m.pi/180:
         goal_phi = 4*m.pi/180*np.sign(goal_phi)
 
@@ -134,7 +139,7 @@ while mass > 50000:
 
 
     # минус-стабильно плюс-нестабильно
-    omega = omega + (P[1] * 15 / 1e8 + NQ[1] * 15/ 1e8) * h
+    omega = omega + (P[1] * 15 / 1e8 - NQ[1] * (15)/ 1e8) * h
 
     pitch = pitch + omega * h
 
@@ -142,6 +147,11 @@ while mass > 50000:
 
     Pos = Pos + Vel * h
     mass = mass - dm * h
+
+    test_list4.append(R[0])
+    test_list5.append(rot_1(R, vel_ang)[1])
+    test_list6.append(NQ[1] * (15))
+    test_list7.append(P[1] * 15)
     t = t + h
 
 plt.plot(x_list, y_list)
@@ -161,5 +171,13 @@ plt.plot(test_list5, t_list,label='подъёмная сила в земной �
 plt.legend(loc=4)
 plt.ylabel('Секунда полёта')
 plt.xlabel('Ньютон')
+plt.grid()
+plt.show()
+
+plt.plot(test_list6, t_list,label='АД момент ')
+plt.plot(test_list7, t_list,label='ДУ момент')
+plt.legend(loc=4)
+plt.ylabel('Секунда полёта')
+plt.xlabel('Ньютон*метр')
 plt.grid()
 plt.show()
