@@ -4,7 +4,7 @@ import math as m
 import matplotlib.pyplot as plt
 import numpy as np
 
-rho = 1.29
+
 Sm = m.pi * (1.5**2)/2
 peng = 1200000
 mass = 100000
@@ -16,23 +16,23 @@ def goal(alt):
     return res
 
 def aero_force(V,a,h):
-    CY = 0.1
+    CY = 2
     CX = 0.2
     w=0
-    if 0 <  h <=10.5: w=11.5*m.exp(0.195*h)
-    if 10.5 < h <= 27: w = 21 * m.exp(4.93*(10e-3)-3*(27-h)**2)
-    if h > 27: w=21
-    wind = np.array([10, 0])
+    w = 15+(0.1*h)**2
+    wind = np.array([w, 0])
 
-    if norm(V) > 10: a=a-wind[0]/norm(V)
+    if norm(V) < 0.5: a=a - m.pi/2
+    else: a=a-m.atan(norm(wind)/norm(V))
 
-
+    rho = 1.29*m.exp(-h/8)
     V = V+wind
-    mas = np.array([-CX, CY * a])
+    mas = np.array([-CX * m.cos(a),
+                     CY * m.sin(a)])
 
     mas = mas * rho * Sm * (norm(V) ** 2) / 2
 
-    return a,mas
+    return a, mas
 
 
 def thrust(P_, ang):
@@ -64,8 +64,8 @@ def atan(vec):
     return res
 
 def engine_move(dang, beta):
-    u_max = 0.01;
-    u =0* u_max * np.sign(dang - beta*abs(beta)/(2*u_max))
+    u_max = 2;
+    u = u_max * np.sign(dang - beta*abs(beta)/(2*u_max))
 
     return u
 x_list = list()
@@ -75,6 +75,7 @@ test_list = list()
 test_list2 = list()
 test_list3 = list()
 test_list4 = list()
+test_list5 = list()
 Vel = np.array([0, 0])
 Pos = np.array([0, 0])
 omega = 0
@@ -93,6 +94,7 @@ h = 0.01
 pid = pid_class(h,0,1,0.1,4)
 
 while mass > 50000:
+    if Pos[1] < 0: break
     t_list.append(t)
     x_list.append(Pos[0])
     y_list.append(Pos[1])
@@ -109,11 +111,12 @@ while mass > 50000:
 
 
     NQ = rot_2(R, attack_angle)
-    test_list4.append(NQ[1])
+    test_list4.append(R[0])
+    test_list5.append(rot_1(R, vel_ang)[1])
     goal_pitch = goal(Pos[1]/1000)
 
 
-    pid.update_goal(0)
+    pid.update_goal(m.pi/12)
 
     goal_phi = pid.gen_signal(pitch)
 
@@ -121,7 +124,7 @@ while mass > 50000:
         goal_phi = 4*m.pi/180*np.sign(goal_phi)
 
 
-    beta = beta + engine_move(goal_phi-phi,beta)*h
+    beta = beta + engine_move(goal_phi-phi, beta)*h
     phi = phi + beta *h
 
 
@@ -131,7 +134,7 @@ while mass > 50000:
 
 
     # минус-стабильно плюс-нестабильно
-    omega = omega + (P[1] * 30 / 1e9 - NQ[1] * 15*attack_angle / 1e9) * h
+    omega = omega + (P[1] * 15 / 1e8 + NQ[1] * 15/ 1e8) * h
 
     pitch = pitch + omega * h
 
@@ -144,16 +147,17 @@ while mass > 50000:
 plt.plot(x_list, y_list)
 
 plt.show()
-plt.plot(test_list,t_list, label = 'Наклон траектории')
-plt.plot(test_list2,t_list,  label = 'Тангаж')
-plt.plot(test_list3,t_list, label = 'Угол Атаки')
+plt.plot(t_list, test_list, label = 'Наклон траектории')
+plt.plot(t_list, test_list2,  label = 'Тангаж')
+plt.plot(t_list, test_list3, label = 'Угол Атаки')
 plt.legend(loc=4)
-plt.ylabel('Секунда полёта')
-plt.xlabel('Градус')
+plt.xlabel('Секунда полёта')
+plt.ylabel('Градус')
 plt.grid()
 plt.show()
 
-plt.plot(test_list4,t_list,label='подъёмная сила')
+plt.plot(test_list4, t_list,label='подъёмная сила в скоростной системе')
+plt.plot(test_list5, t_list,label='подъёмная сила в земной системе')
 plt.legend(loc=4)
 plt.ylabel('Секунда полёта')
 plt.xlabel('Ньютон')
