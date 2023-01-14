@@ -6,10 +6,115 @@ import numpy as np
 
 
 
-peng = 8100000
-mass = 549054
-w = 2910
+peng = 395900
+
+w = 3300
 dm = peng / w
+s1 = 11
+s2 = 9
+mb1 = 27640
+mb2 = 5000
+
+#Плотности
+po = 1140
+pg = 440
+kompsot = 3.5
+
+#Основные габариты
+D = 1.6
+Lpo = 0.1
+Lgo = 2.7+0.1
+Loh1 = 3.1
+Loh2 = 1.9
+Lst1 = 15.3
+Lst2 = 2.7
+Lrocket = 25.9
+#Массы компонентов топлива (константы)
+mt1 = 25120
+mt2 = 4440
+#Массы компонентов топлива
+mg1 = mt1 * 1 / (1 + kompsot)
+mg2 = mt2 * 1 / (1 + kompsot)
+mo1 = mt1 * kompsot / (1 + kompsot)
+mo2 = mt2 * kompsot / (1 + kompsot)
+
+#Объемы компонентов топлива
+wg1 = mg1 / pg
+wg2 = mg2 / pg
+wo1 = mo1 / po
+wo2 = mo2 / po
+
+#Массы и объемы конструкции блоков
+mk1 = mb1 - mt1
+mk2 = mb2 - mt2
+wk1 = mk1/2700
+wk2 = mk2/2700
+
+mass = mk1 + mk2 + mt1 + mt2 + 1000
+
+#Длины баков
+Lg1 = wg1 * 4 / (np.pi*(D**2))
+Lg2 = wg2 * 4 / (np.pi*(D**2))
+
+Lo1 = wo1 * 4 / (np.pi*(D**2))
+Lo2 = wo2 * 4 / (np.pi*(D**2))
+
+Ug1 = Lg1; Ug2 = Lg2; Uo1 = Lo1; Uo2 = Lo2
+
+#Уровни топлива
+K21o = Lgo + Uo2 - Lo2
+K22o = Lgo + Uo2
+K2summo = K21o + K22o
+
+K21g = K22o + Ug2 - Lg2
+K22g = K22o + Ug2
+K2summg = K21g + K22g
+
+K11o = K22g + Loh2 + Uo1 - Lo1
+K12o = K22g + Loh2 + Uo1
+K1summo = K11o + K12o
+
+K11g = K12o + Uo1 - Lg1
+K12g = K12o + Uo1
+K1summg = K11g + K12g
+
+#Стартовые моменты инерции:
+
+#_Конструкция
+K2summ = K21o + K22g; K1summ = K11o + K12g
+Sk2 = 0.5 * K2summ * mk2
+Sk1 = 0.5 * K1summ * mk1
+Sk = Sk1 + Sk2
+
+Ik2 = 0.25 * (K2summ**2) + (D/2)**2 + 0.333 * (Lst2**2) * mk2
+Ik1 = 0.25 * (K1summ**2) + (D/2)**2 + 0.333 * (Lst1**2) * mk1
+
+Ik = Ik1 + Ik2
+#_Топливо
+Stg1 = mg1 * K1summg * 0.5
+Stg2 = mg2 * K2summg * 0.5
+
+Sto1 = mo1 * K1summo * 0.5
+Sto2 = mo2 * K2summo * 0.5
+
+Sto = Sto1 + Sto2
+Stg = Stg1 + Stg2
+
+Itg1 = mg1 * (K1summg**2) + (D/2)**2 + 0.333 * (Ug1**2) * 0.25
+Itg2 = mg2 * (K2summg**2) + (D/2)**2 + 0.333 * (Ug2**2) * 0.25
+
+Ito1 = mo1 * (K1summo**2) + (D/2)**2 + 0.333 * (Uo1**2) * 0.25
+Ito2 = mo2 * (K2summo**2) + (D/2)**2 + 0.333 * (Uo2**2) * 0.25
+
+
+Ito = Ito1 + Ito2
+Itg = Itg1 + Itg2
+Isumm = Ito + Itg + Ik + (D * (Lgo**3) / 12)
+Ssumm = Sto + Stg + Sk + (D * (Lgo**2) / 24)
+Xcm = Ssumm / mass
+
+print(Xcm)
+print(Lg1+Lg2+Lo1+Lo2+Lgo+Loh1+Loh2)
 
 
 def goal(time):
@@ -27,7 +132,7 @@ def aero_force(V,a,h):
     if h > 27:
         w = 21
 
-    wind = np.array([-0, 0])
+    wind = np.array([-30, 0])
 
     if norm(V) < 0.5: a=a - m.pi/2
     else: a=a-m.atan(wind[0]/norm(V))
@@ -84,6 +189,8 @@ test_list4 = list()
 test_list5 = list()
 test_list6 = list()
 test_list7 = list()
+xc_list = list()
+inert_list = list()
 Vel = np.array([0, 0])
 Pos = np.array([0, 0])
 omega = 0
@@ -101,7 +208,7 @@ h = 0.01
 
 pid = pid_class(h,0,1,0.1,2)
 
-while mass > 140000:
+while mt1 > 8500:
     if Pos[1] < 0:
         print('Falling')
         break
@@ -140,10 +247,94 @@ while mass > 140000:
 
     P = thrust(peng, phi)
 
-    inertia = mass * (70 ** 2) / 12
+    mt1 = mt1 - dm * h
+
+    # Массы компонентов топлива
+    mg1 = mt1 * 1 / (1 + kompsot)
+    mg2 = mt2 * 1 / (1 + kompsot)
+    mo1 = mt1 * kompsot / (1 + kompsot)
+    mo2 = mt2 * kompsot / (1 + kompsot)
+
+    # Объемы компонентов топлива
+    wg1 = mg1 / pg
+    wg2 = mg2 / pg
+    wo1 = mo1 / po
+    wo2 = mo2 / po
+
+    # Массы и объемы конструкции блоков
+    mk1 = mb1 - mt1
+    mk2 = mb2 - mt2
+    wk1 = mk1 / 2700
+    wk2 = mk2 / 2700
+
+    mass = mk1 + mk2 + mt1 + mt2 + 1000
+
+    # Длины баков
+    Lg1 = wg1 * 4 / (np.pi * (D ** 2))
+    Lg2 = wg2 * 4 / (np.pi * (D ** 2))
+
+    Lo1 = wo1 * 4 / (np.pi * (D ** 2))
+    Lo2 = wo2 * 4 / (np.pi * (D ** 2))
+
+    Ug1 = Lg1
+    Ug2 = Lg2
+    Uo1 = Lo1
+    Uo2 = Lo2
+
+    # Уровни топлива
+    K21o = Lgo + Uo2 - Lo2
+    K22o = Lgo + Uo2
+    K2summo = K21o + K22o
+
+    K21g = K22o + Ug2 - Lg2
+    K22g = K22o + Ug2
+    K2summg = K21g + K22g
+
+    K11o = K22g + Loh2 + Uo1 - Lo1
+    K12o = K22g + Loh2 + Uo1
+    K1summo = K11o + K12o
+
+    K11g = K12o + Uo1 - Lg1
+    K12g = K12o + Uo1
+    K1summg = K11g + K12g
+
+    # Стартовые моменты инерции:
+
+    # _Конструкция
+    K2summ = K21o + K22g;
+    K1summ = K11o + K12g
+    Sk2 = 0.5 * K2summ * mk2
+    Sk1 = 0.5 * K1summ * mk1
+    Sk = Sk1 + Sk2
+
+    Ik2 = 0.25 * (K2summ ** 2) + (D / 2) ** 2 + 0.333 * (Lst2 ** 2) * mk2
+    Ik1 = 0.25 * (K1summ ** 2) + (D / 2) ** 2 + 0.333 * (Lst1 ** 2) * mk1
+
+    Ik = Ik1 + Ik2
+    # _Топливо
+    Stg1 = mg1 * K1summg * 0.5
+    Stg2 = mg2 * K2summg * 0.5
+
+    Sto1 = mo1 * K1summo * 0.5
+    Sto2 = mo2 * K2summo * 0.5
+
+    Sto = Sto1 + Sto2
+    Stg = Stg1 + Stg2
+
+    Itg1 = mg1 * (K1summg ** 2) + (D / 2) ** 2 + 0.333 * (Ug1 ** 2) * 0.25
+    Itg2 = mg2 * (K2summg ** 2) + (D / 2) ** 2 + 0.333 * (Ug2 ** 2) * 0.25
+
+    Ito1 = mo1 * (K1summo ** 2) + (D / 2) ** 2 + 0.333 * (Uo1 ** 2) * 0.25
+    Ito2 = mo2 * (K2summo ** 2) + (D / 2) ** 2 + 0.333 * (Uo2 ** 2) * 0.25
+
+    Ito = Ito1 + Ito2
+    Itg = Itg1 + Itg2
+    Isumm = Ito + Itg + Ik + (D * (Lgo ** 3) / 12)
+    Ssumm = Sto + Stg + Sk + (D * (Lgo ** 2) / 24)
+    Xcm = Ssumm / mass
 
     # минус-стабильно плюс-нестабильно
-    omega = omega + (P[1] * (35) / inertia - NQ[1] * (10)/ inertia) * h
+    omega = omega + (P[1] * (5) / Isumm - NQ[1] * (1) / Isumm) * h
 
     pitch = pitch + omega * h
 
@@ -152,18 +343,37 @@ while mass > 140000:
     Vel = Vel + (rot_1(R, vel_ang) + rot_1(P, pitch) + mass * g+magic) * h / mass
 
     Pos = Pos + Vel * h
-    mass = mass - dm * h
 
-    test_list4.append(R[1])
-    test_list5.append(rot_1(R, vel_ang)[1])
+    inert_list.append(Isumm)
+    xc_list.append(Xcm)
+    test_list4.append(NQ[1])
+    test_list5.append(NQ[0])
     test_list6.append(omega)
 
     t = t + h
 print('Cкорости(км/ч): ',norm(Vel) * 3.6)
 print('Высота(км): ',Pos[1] /1000)
-plt.plot(x_list, y_list)
 
+
+plt.plot(t_list, inert_list, label='Момент  инерции ')
+plt.legend()
+plt.xlabel('Секунда полёта')
+plt.ylabel('кг*м^2')
+plt.grid()
 plt.show()
+
+
+plt.plot(t_list, xc_list, label='Координта ц.т. ')
+plt.legend()
+plt.xlabel('Секунда полёта')
+plt.ylabel('м')
+plt.grid()
+plt.show()
+
+
+plt.plot(x_list, y_list)
+plt.show()
+
 plt.plot(t_list, test_list, label = 'Наклон траектории')
 plt.plot(t_list, test_list2,  label = 'Тангаж')
 plt.plot(t_list, test_list3, label = 'Угол Атаки')
@@ -173,8 +383,8 @@ plt.ylabel('Градус')
 plt.grid()
 plt.show()
 
-plt.plot(test_list4, t_list,label='подъёмная сила в скоростной системе')
-plt.plot(test_list5, t_list,label='подъёмная сила в земной системе')
+plt.plot(test_list4, t_list,label='Перерезывающая сила')
+plt.plot(test_list5, t_list,label='Продольная сила')
 plt.legend(loc=4)
 plt.ylabel('Секунда полёта')
 plt.xlabel('Ньютон')
@@ -182,9 +392,9 @@ plt.grid()
 plt.show()
 
 plt.plot(t_list, test_list6, label='вращение по тангажу ')
-
 plt.legend(loc=4)
 plt.xlabel('Секунда полёта')
 plt.ylabel('рад/c')
 plt.grid()
 plt.show()
+
