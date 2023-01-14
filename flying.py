@@ -7,7 +7,7 @@ import numpy as np
 
 
 peng = 8100000
-mass = 549000
+mass = 549054
 w = 2910
 dm = peng / w
 
@@ -72,8 +72,8 @@ def atan(vec):
 def engine_move(dang, beta):
     u_max = 0.3;
     u = u_max * np.sign(dang - beta*abs(beta)/(2*u_max))
-
     return u
+
 x_list = list()
 y_list = list()
 t_list = list()
@@ -88,7 +88,7 @@ Vel = np.array([0, 0])
 Pos = np.array([0, 0])
 omega = 0
 pitch = 0
-phi =0
+phi = 0
 beta = 0
 g = np.array([0, -9.81])
 
@@ -143,11 +143,11 @@ while mass > 140000:
     inertia = mass * (70 ** 2) / 12
 
     # минус-стабильно плюс-нестабильно
-    omega = omega + (P[1] * (35) / inertia + NQ[1] * (10)/ inertia) * h
+    omega = omega + (P[1] * (35) / inertia - NQ[1] * (10)/ inertia) * h
 
     pitch = pitch + omega * h
 
-    magic =mass * np.array([0, 1])*(Vel[0]**2)/(6371000+Pos[1])
+    magic = mass * np.array([0, 1])*(Vel[0]**2)/(6371000+Pos[1])
 
     Vel = Vel + (rot_1(R, vel_ang) + rot_1(P, pitch) + mass * g+magic) * h / mass
 
