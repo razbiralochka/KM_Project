@@ -21,14 +21,13 @@ pg = 440
 kompsot = 3.5
 
 #Основные габариты
-D = 1.6
-Lpo = 0.1
-Lgo = 2.7+0.1
-Loh1 = 3.1
-Loh2 = 1.9
-Lst1 = 15.3
-Lst2 = 2.7
-Lrocket = 25.9
+D = 1.7
+Lgo = 3.4+0.1
+Loh1 = 2.8
+Loh2 = 2.1
+Lst1 = 17.4
+Lst2 = 4.7
+Lrocket = 25.6
 #Массы компонентов топлива (константы)
 mt1 = 25120
 mt2 = 4440
@@ -52,14 +51,14 @@ wk2 = mk2/2700
 
 mass = mk1 + mk2 + mt1 + mt2 + 1000
 
-#Длины баков
+#Высоты столба жидкости
 Lg1 = wg1 * 4 / (np.pi*(D**2))
 Lg2 = wg2 * 4 / (np.pi*(D**2))
 
 Lo1 = wo1 * 4 / (np.pi*(D**2))
 Lo2 = wo2 * 4 / (np.pi*(D**2))
-
-Ug1 = Lg1; Ug2 = Lg2; Uo1 = Lo1; Uo2 = Lo2
+#Высоты баков
+Ug1 = Lg1*1/0.9; Ug2 = Lg2*1/0.9; Uo1 = Lo1*1/0.9; Uo2 = Lo2*1/0.9
 
 #Уровни топлива
 K21o = Lgo + Uo2 - Lo2
@@ -114,7 +113,7 @@ Ssumm = Sto + Stg + Sk + (D * (Lgo**2) / 24)
 Xcm = Ssumm / mass
 
 print(Xcm)
-print(Lg1+Lg2+Lo1+Lo2+Lgo+Loh1+Loh2)
+print(Lst1+Lst2+Lgo)
 
 
 def goal(time):
@@ -122,8 +121,8 @@ def goal(time):
     return res
 
 def aero_force(V,a,h):
-    CY = 0.6*70*3
-    CX = 0.08*m.pi*(3.7/2)**2
+    CY = 0.6*25*3
+    CX = 0.08*m.pi*(1.6/2)**2
     w = 0
     if 0 < h <= 10.5:
         w = 11.5 * m.exp(0.195 * h)
@@ -132,7 +131,7 @@ def aero_force(V,a,h):
     if h > 27:
         w = 21
 
-    wind = np.array([-30, 0])
+    wind = np.array([-0, 0])
 
     if norm(V) < 0.5: a=a - m.pi/2
     else: a=a-m.atan(wind[0]/norm(V))
@@ -206,9 +205,9 @@ h = 0.01
 
 
 
-pid = pid_class(h,0,1,0.1,2)
+pid = pid_class(h,0,2,0.1,1)
 
-while mt1 > 8500:
+while mt1 > 0:
     if Pos[1] < 0:
         print('Falling')
         break
@@ -334,7 +333,7 @@ while mt1 > 8500:
     Xcm = Ssumm / mass
 
     # минус-стабильно плюс-нестабильно
-    omega = omega + (P[1] * (5) / Isumm - NQ[1] * (1) / Isumm) * h
+    omega = omega + (P[1] * (5) / Isumm - NQ[1] * (3) / Isumm) * h
 
     pitch = pitch + omega * h
 
