@@ -7,6 +7,7 @@ import numpy as np
 
 
 peng = 395900
+peng2 = 58800
 
 w = 3300
 dm = peng / w
@@ -131,7 +132,7 @@ def aero_force(V,a,h):
     if h > 27:
         w = 21
 
-    wind = np.array([-0, 0])
+    wind = np.array([-25, 0])
 
     if norm(V) < 0.5: a=a - m.pi/2
     else: a=a-m.atan(wind[0]/norm(V))
