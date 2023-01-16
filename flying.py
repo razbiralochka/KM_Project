@@ -5,7 +5,7 @@ import math as m
 import matplotlib.pyplot as plt
 import numpy as np
 
-pozitron = rocket(lenght = [17.4, 4.7], diameter=1.7, fairing_lenght=3.5)
+pozitron = rocket()
 
 peng = 395900
 peng2 = 58800
@@ -85,8 +85,8 @@ K1summg = K11g + K12g
 #Стартовые моменты инерции:
 
 #_Конструкция
-K2summ = K21o + K22g
-K1summ = K11o + K12g
+K2summ = Lgo + (K22g + Loh2)
+K1summ = (K22g + Loh2) + (Loh1 + K12g)
 Sk2 = 0.5 * K2summ * mk2
 Sk1 = 0.5 * K1summ * mk1
 Sk = Sk1 + Sk2
