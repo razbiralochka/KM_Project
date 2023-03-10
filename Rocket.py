@@ -2,7 +2,6 @@ import numpy as np
 
 class stage_class:
 
-
     # Engines Features
     def engines_set(self, thrust=0, imp=0):
         self._thrust = thrust
@@ -29,6 +28,7 @@ class stage_class:
     def geometry_set(self,dimeter=0, stage_lenght=0, separator_lenght=0):
         self._dimeter = dimeter
         self._stage_lenght = stage_lenght
+        self._stage_lenght = stage_lenght
         self._separator_lenght = separator_lenght
         self._LNG_lenght = 4*self._LNG_volume/(np.pi*pow(dimeter,2))
         self._LOX_lenght = 4 * self._LOX_volume / (np.pi * pow(dimeter, 2))
@@ -47,7 +47,10 @@ class stage_class:
         return self._separator_lenght
     def const_mass(self):
         return self._const_mass
-
+    def diameter(self):
+        return self._dimeter
+    def lenght(self):
+        return self._stage_lenght
 class fairing_class():
     def __init__(self, diameter = 0, lenght = 0):
         self._lenght = lenght
@@ -57,47 +60,16 @@ class fairing_class():
 
 
 class Rocket_assembly:
-    def __init__(self,payload = 0, lenght = [0,0], diameter = 0, fairing_lenght = 0):
+    def __init__(self):
         self._stage = list()
-        self._lenght = lenght
-        self._diameter = diameter
-        self._stage.append(stage_class())
-        self._stage.append(stage_class())
+    def add_stage(self, stage):
+        self._stage.append(stage)
+    def add_fairing(self,obj):
+        self._fairing = obj
 
-
-        self._stage[0].engines_set(thrust=395900,
-                                  imp=3300)
-
-        self._stage[0].fuel_set(fuel_mass=25120,
-                               LOX_density=1140,
-                               LNG_density=440,
-                               LNG_to_LOX_ratio=3.5)
-
-        self._stage[0].mass_set(start_mass=27640)
-
-        self._stage[0].geometry_set(dimeter=diameter,
-                                   stage_lenght=lenght[0],
-                                   separator_lenght=2.8)
-
-        self._stage[1].engines_set(thrust=58800,
-                                  imp=3300)
-
-        self._stage[1].fuel_set(fuel_mass=4440,
-                               LOX_density=1140,
-                               LNG_density=440,
-                               LNG_to_LOX_ratio=3.5)
-
-        self._stage[1].mass_set(start_mass=5000)
-
-        self._stage[1].geometry_set(dimeter=diameter,
-                                   stage_lenght=lenght[1],
-                                   separator_lenght=2.1)
-
-        self._fairing = fairing_class(diameter=diameter, lenght=fairing_lenght)
 
     #Требует пояснения
     def upd_masses(self):
-
         K_LOX = np.zeros(2)
         K_LNG = np.zeros(2)
         K = np.zeros(2)
@@ -126,18 +98,53 @@ class Rocket_assembly:
         const_stat_moment_sum=sum(const_stat_moment)
 
         #Момент инецрии
-        constr_inertia=[0.25 * (K[i] ** 2) + (self._diameter / 2) ** 2 + 0.333 * (self._lenght[i] ** 2) *
-                 self._stage[i].const_mass() for i,val in enumerate(self._stage)]
+        constr_inertia=[0.25 * (K[i] ** 2) + (self._stage[i].diameter() / 2) ** 2 + 0.333 * (self._stage[i].lenght() ** 2) *
+                    self._stage[i].const_mass() for i,val in enumerate(self._stage)]
 
         constr_inertia_sum = sum(constr_inertia)
 
 
 
 class rocket():
-    def __init__(self, lenght = [0,0], diameter = 0, fairing_lenght = 0):
+    def __init__(self):
 
-        self.body = Rocket_assembly(payload=1000,
-                                    lenght = lenght,
-                                    diameter = diameter,
-                                    fairing_lenght = fairing_lenght)
+        self.body = Rocket_assembly()
+
+        stage = stage_class()
+
+        stage.engines_set(thrust=395900,
+                          imp=3300)
+
+        stage.fuel_set(fuel_mass=25120,
+                       LOX_density=1140,
+                       LNG_density=440,
+                       LNG_to_LOX_ratio=3.5)
+
+        stage.mass_set(start_mass=27640)
+
+        stage.geometry_set(dimeter=1.7,
+                           stage_lenght=17.4,
+                           separator_lenght=2.8)
+        self.body.add_stage(stage)
+
+
+        stage.engines_set(thrust=58800,
+                          imp=3300)
+
+        stage.fuel_set(fuel_mass=4440,
+                       LOX_density=1140,
+                       LNG_density=440,
+                       LNG_to_LOX_ratio=3.5)
+
+        stage.mass_set(start_mass=5000)
+
+        stage.geometry_set(dimeter=1.7,
+                           stage_lenght=4.7,
+                           separator_lenght=2.1)
+        self.body.add_stage(stage)
+
+        fairing = fairing_class(diameter=1.7, lenght=3.5)
+
+        self.body.add_fairing(fairing)
+
         self.body.upd_masses()
