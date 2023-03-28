@@ -3,6 +3,7 @@ import numpy as np
 class Fuel_tank:
     def __init__(self, dia, lenght, constr_mass , liquid_type = "LNG"):
         self._diameter  = dia
+        self._radius = dia / 2
         self._lenght = lenght
         self._constr_mass = constr_mass
 
@@ -20,15 +21,15 @@ class Fuel_tank:
         self._liquid_mass = self._liquid_density*self._liquid_volume
         self._total_mass = self._constr_mass + self._liquid_mass
 
+        self._constr_inertia = self._constr_mass * ((self._radius ** 2) / 2 + (self._lenght ** 2) / 3)
+    def burnout(self, consumption, time):
+        pass
     def part_inertia(self):
-        radius = self._diameter/2
-        constr_inertia = self._constr_mass*((radius**2)/2+(self._lenght**2)/3)
-
         offset = self._lenght-self._liquid_lenght/2
 
-        liquid_inertia = self._liquid_mass*((radius**2)/4+(self._liquid_lenght**2)/12+offset**2)
+        liquid_inertia = self._liquid_mass*((self._radius**2)/4+(self._liquid_lenght**2)/12+offset**2)
 
-        total_inetria = constr_inertia+liquid_inertia
+        total_inetria = self._constr_inertia+liquid_inertia
 
         return total_inetria
 
@@ -36,12 +37,13 @@ class Fuel_tank:
 
         return self._total_mass
 
+    def part_lenght(self):
+        return self._lenght
     def CoM(self):
         offset = self._lenght - self._liquid_lenght / 2
         res = self._constr_mass*self._lenght/2 + self._liquid_mass*(self._lenght-offset)
         return res/self._total_mass
-    def burnout(self, consumption, time):
-        pass
+
 
 
 
@@ -54,9 +56,16 @@ class Engine:
         b = 0.000165262
         self._mass = a*np.exp(-b*self._thrust)*(np.exp(b*self._thrust)-1)
 
-    def mass(self):
+    def part_mass(self):
         return self._mass
+    def part_inertia(self):
+        return 0
 
+    def part_lenght(self):
+        return 0
+
+    def CoM(self):
+        return 0
 class Adapter:
     def __init__(self, upper_dim, lower_dim, lenght, mass):
         self._upper_dim = upper_dim
@@ -65,13 +74,17 @@ class Adapter:
         r1 = upper_dim/2
         r2 = lower_dim/2
         self._inertia = (lenght**2)*mass/(r1+3*r2)/(6*(r1+r2))+0.25*mass*(pow(r2, 2)+pow(r1, 2))
-
+        self._CoM = self._lenght/3+(2*self._lower_dim+self._upper_dim)/(self._lower_dim+self._upper_dim)
     def part_inertia(self):
         return self._inertia
 
+    def part_lenght(self):
+        return self._lenght
+
+    def part_mass(self):
+        return self._mass
     def CoM(self):
-        res = self._lenght/3+(2*self._lower_dim+self._upper_dim)/(self._lower_dim+self._upper_dim)
-        return res
+        return self._CoM
 class Fairing:
     def __init__(self, lenght, dim, mass):
         self._lenght = lenght
@@ -102,6 +115,8 @@ class Fairing:
     def part_inertia(self):
         return self._inertia
 
+    def part_lenght(self):
+        return self._lenght
 
     def CoM(self):
         return  self._static
@@ -110,6 +125,17 @@ class Payload:
     def __init__(self, mass):
         self.mass = mass
 
+    def part_mass(self):
+        return self._mass
+
+    def part_inertia(self):
+        return 0
+
+    def part_lenght(self):
+        return 0
+
+    def CoM(self):
+        return 0
 
 
 
