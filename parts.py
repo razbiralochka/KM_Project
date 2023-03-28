@@ -33,10 +33,14 @@ class Fuel_tank:
         return total_inetria
 
     def part_mass(self):
+
         return self._total_mass
 
-
-    def burnout(self, consumption):
+    def CoM(self):
+        offset = self._lenght - self._liquid_lenght / 2
+        res = self._constr_mass*self._lenght/2 + self._liquid_mass*(self._lenght-offset)
+        return res/self._total_mass
+    def burnout(self, consumption, time):
         pass
 
 
@@ -65,30 +69,18 @@ class Adapter:
     def part_inertia(self):
         return self._inertia
 
+    def CoM(self):
+        res = self._lenght/3+(2*self._lower_dim+self._upper_dim)/(self._lower_dim+self._upper_dim)
+        return res
 class Fairing:
     def __init__(self, lenght, dim, mass):
         self._lenght = lenght
         self._dim = dim
         self._radius = dim/2
         self._mass = mass
-        self._density = self.find_density()
-
-    def find_density(self):
-        arg = 100
-        f = self.calculate_mass(arg)-self._mass
-        while abs(f)>0.01:
-            print(f)
-            f =self.calculate_mass(arg)
-            df = (self.calculate_mass(arg+1e-7)-self.calculate_mass(arg-1e-7))/1e-7
-            arg  = arg  - f/df
-
-        return arg
-
-    def calculate_mass(self,arg):
-        cords = np.linspace(0,self._lenght, 1000)
-        radiuses = self.radius(cords)
-        mass = arg*np.trapz(radiuses, cords)
-        return mass
+        self._static = 0
+        self._density = 0
+        self.upd_masses()
 
     def radius(self,arg):
         res =0.5*((self._radius**2-self._lenght**2)/self._radius+np.sqrt(pow(self._lenght,4)/pow(self._radius,2)
@@ -96,11 +88,27 @@ class Fairing:
                                                                     8*self._lenght*arg-4*pow(arg,2)))
         return res
 
+    def inert(self,arg):
+        res = (pow(self.radius(arg), 2) / 2 + pow(arg, 2)) * self._density * self.radius(arg)
+
+        return res
+    def upd_masses(self):
+        l = np.linspace(0, self._lenght, 10000)
+        surface = 2 * np.pi * np.trapz(self.radius(l), l)
+        self._density = self._mass / surface
+        self._inertia = np.trapz(self.inert(l), l)
+        self._static = self._density * 2 * np.pi * np.trapz(self.radius(l) * l, l) / self._mass
+
+    def part_inertia(self):
+        return self._inertia
 
 
-fairing = Fairing(10,4,100)
+    def CoM(self):
+        return  self._static
 
-
+class Payload:
+    def __init__(self, mass):
+        self.mass = mass
 
 
 
