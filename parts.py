@@ -75,6 +75,7 @@ class Adapter:
         r2 = lower_dim/2
         self._inertia = (lenght**2)*mass/(r1+3*r2)/(6*(r1+r2))+0.25*mass*(pow(r2, 2)+pow(r1, 2))
         self._CoM = self._lenght/3+(2*self._lower_dim+self._upper_dim)/(self._lower_dim+self._upper_dim)
+        self._mass = mass
     def part_inertia(self):
         return self._inertia
 
@@ -118,12 +119,14 @@ class Fairing:
     def part_lenght(self):
         return self._lenght
 
+    def part_mass(self):
+        return self._mass
     def CoM(self):
         return  self._static
 
 class Payload:
     def __init__(self, mass):
-        self.mass = mass
+        self._mass = mass
 
     def part_mass(self):
         return self._mass

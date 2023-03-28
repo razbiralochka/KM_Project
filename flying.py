@@ -1,5 +1,5 @@
 from PID import pid_class
-from Rocket import rocket
+from Stages import rocket
 from numpy.linalg import norm
 import math as m
 import matplotlib.pyplot as plt
