@@ -9,7 +9,7 @@ class Stage:
     def add_part_to_stage(self, part):
         self._stage_parts.append(part)
         self._lenght_of_parts.append(part.part_lenght())
-        print(self._lenght_of_parts)
+
 
     def stage_mass(self):
         res = sum([part.part_mass() for part in self._stage_parts])

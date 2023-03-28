@@ -51,11 +51,8 @@ class Engine:
         self._imp = imp
         self._cunsuption = cunsuption
         self._thrust = imp*cunsuption
-        print("Тяга кН ", self._thrust/1000)
-        a = 10959.9
-        b = 0.000165262
         self._mass = self._thrust*(35/25000)
-        print("Масса ДУ ", self._mass)
+
     def part_mass(self):
 
         return self._mass
