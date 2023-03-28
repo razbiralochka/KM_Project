@@ -20,7 +20,6 @@ class Fuel_tank:
         self._liquid_volume = self._liquid_lenght*np.pi*(dia**2)/4
         self._liquid_mass = self._liquid_density*self._liquid_volume
         self._total_mass = self._constr_mass + self._liquid_mass
-
         self._constr_inertia = self._constr_mass * ((self._radius ** 2) / 2 + (self._lenght ** 2) / 3)
     def burnout(self, consumption, time):
         pass
@@ -52,11 +51,13 @@ class Engine:
         self._imp = imp
         self._cunsuption = cunsuption
         self._thrust = imp*cunsuption
+        print("Тяга кН ", self._thrust/1000)
         a = 10959.9
         b = 0.000165262
-        self._mass = a*np.exp(-b*self._thrust)*(np.exp(b*self._thrust)-1)
-
+        self._mass = self._thrust*(35/25000)
+        print("Масса ДУ ", self._mass)
     def part_mass(self):
+
         return self._mass
     def part_inertia(self):
         return 0
