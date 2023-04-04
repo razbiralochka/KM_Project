@@ -127,22 +127,20 @@ def goal(time):
     if time<2:
         res = 0
     else:
-        res = m.pi/2+m.atan(1-400/t)
+        res = m.pi/2+m.atan(1-300/t)
+
+
     #res = (m.pi / 2) * m.exp(-0.006 * time) * (m.exp(0.006 * time) - 1)
     return res
 
 def aero_force(V,a,h):
     CY = 0.6*25*3
     CX = 0.12*m.pi*(1.6/2)**2
-    w = 0
-    if 0 < h <= 10.5:
-        w = 11.5 * m.exp(0.195 * h)
-    if 10.5 < h <= 27:
-        w = 21 * m.exp(4.93 * (1e-3) * (27 - h) ** 2)
-    if h > 27:
-        w = 21
 
-    wind = np.array([-15, 0])
+
+    w = 100*m.sin(0.05*h)
+
+    wind = np.array([-w, 0])
 
 
     a=a-m.atan(wind[0]/(norm(V)+0.0001))
@@ -182,7 +180,7 @@ def atan(vec):
     return res
 
 def engine_move(dang, beta):
-    u_max = 0.5;
+    u_max = 0.2;
     u = u_max * np.sign(dang - beta*abs(beta)/(2*u_max))
     return u
 
@@ -344,7 +342,7 @@ while mt1 > 0:
 
     nx_list.append((P[0]-NQ[0])/(mass*9.81))
     ny_list.append((P[1]+NQ[1])/(mass*9.81))
-    print()
+
     pitch = pitch + omega * h
 
     magic = mass * np.array([0, 1])*(Vel[0]**2)/(6371000+Pos[1])
@@ -355,8 +353,8 @@ while mt1 > 0:
 
     inert_list.append(Isumm)
     xc_list.append(Xcm)
-    test_list4.append(NQ[1])
-    test_list5.append(NQ[0])
+    test_list4.append(NQ[1]/1000)
+    test_list5.append(NQ[0]/1000)
     test_list6.append(omega)
     v_list.append(norm(Vel))
 
@@ -369,7 +367,7 @@ print('Высота(км): ',Pos[1] /1000)
 
 
 plt.plot(t_list, inert_list, label='Момент  инерции ')
-plt.legend()
+
 plt.xlabel('Секунда полёта')
 plt.ylabel('кг*м^2')
 plt.grid()
@@ -377,7 +375,7 @@ plt.show()
 
 
 plt.plot(t_list, xc_list, label='Координта ц.т. ')
-plt.legend()
+
 plt.xlabel('Секунда полёта')
 plt.ylabel('м')
 plt.grid()
@@ -385,14 +383,14 @@ plt.show()
 
 
 plt.plot(x_list, y_list, label='Траектория ')
-plt.legend()
+
 plt.xlabel('Дальность полета, км')
 plt.ylabel('Высота полета, км')
 plt.grid()
 plt.show()
 
 plt.plot(t_list, v_list, label='Скорость по времени')
-plt.legend()
+
 plt.xlabel('Секунда полёта')
 plt.ylabel('Скорость, м/c')
 plt.grid()
@@ -402,29 +400,29 @@ plt.show()
 plt.plot(t_list, test_list, label = 'Наклон траектории')
 plt.plot(t_list, test_list2,  label = 'Тангаж')
 plt.plot(t_list, test_list3, label = 'Угол Атаки')
-plt.legend(loc=4)
+plt.legend()
 plt.xlabel('Секунда полёта')
 plt.ylabel('Градус')
 plt.grid()
 plt.show()
 
-plt.plot(test_list4, t_list,label='Поперечная сила')
-plt.plot(test_list5, t_list,label='Продольная сила')
-plt.legend(loc=4)
-plt.ylabel('Секунда полёта')
-plt.xlabel('Ньютон')
+plt.plot(t_list, test_list4, label='Поперечная сила')
+plt.plot(t_list, test_list5, label='Продольная сила')
+plt.legend()
+plt.xlabel('Секунда полёта')
+plt.ylabel('кН')
 plt.grid()
 plt.show()
 
 plt.plot(t_list, test_list6, label='вращение по тангажу ')
-plt.legend(loc=4)
+
 plt.xlabel('Секунда полёта')
 plt.ylabel('рад/c')
 plt.grid()
 plt.show()
 
 plt.plot(t_list, stable_list, label='Показатель устойчивости ')
-plt.legend()
+
 plt.xlabel('Секунда полёта')
 plt.ylabel('Показатель устойчивости %')
 plt.grid()
