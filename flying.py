@@ -383,6 +383,7 @@ ax2.set_ylabel('Координта центра тяжести, м', color=color
 ax2.plot(t_list, xc_list, color=color)
 ax2.tick_params(axis='y', labelcolor=color)
 
+
 fig.tight_layout()  # otherwise the right y-label is slightly clipped
 plt.grid()
 plt.show()
@@ -432,6 +433,10 @@ ax2.plot(t_list, test_list4, color=color)
 ax2.tick_params(axis='y', labelcolor=color)
 
 fig.tight_layout()  # otherwise the right y-label is slightly clipped
+
+ax1.set_ylim([-80,80])
+ax2.set_ylim([-4,4])
+
 plt.grid()
 plt.show()
 
@@ -458,8 +463,9 @@ fig, ax1 = plt.subplots()
 color = 'tab:red'
 ax1.set_xlabel('Время полёта, с')
 ax1.set_ylabel('Продольная перегрузка ', color=color)
-ax1.plot(t_list[750:-1], nx_list[750:-1], color=color)
+ax1.plot(t_list, nx_list, color=color)
 ax1.tick_params(axis='y', labelcolor=color)
+ax1.set_ylim([-1,6])
 
 ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
 
