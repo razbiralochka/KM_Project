@@ -254,6 +254,7 @@ while mt1 > 0:
 
 
     beta = beta + engine_move(goal_phi-phi, beta)*h
+
     phi = phi + beta *h
 
 
@@ -355,7 +356,7 @@ while mt1 > 0:
     xc_list.append(Xcm)
     test_list4.append(NQ[1]/1000)
     test_list5.append(NQ[0]/1000)
-    test_list6.append(omega)
+    test_list6.append(omega*180/np.pi)
     v_list.append(norm(Vel))
 
 
@@ -366,20 +367,28 @@ print('Cкорости(км/c): ',norm(Vel)/1000)
 print('Высота(км): ',Pos[1] /1000)
 
 
-plt.plot(t_list, inert_list, label='Момент  инерции ')
 
-plt.xlabel('Секунда полёта')
-plt.ylabel('кг*м^2')
+fig, ax1 = plt.subplots()
+
+color = 'tab:red'
+ax1.set_xlabel('Время полёта, с')
+ax1.set_ylabel('Момент  инерции, кг*м^2 ', color=color)
+ax1.plot(t_list, inert_list, color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+
+ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+color = 'tab:blue'
+ax2.set_ylabel('Координта центра тяжести, м', color=color)  # we already handled the x-label with ax1
+ax2.plot(t_list, xc_list, color=color)
+ax2.tick_params(axis='y', labelcolor=color)
+
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
 plt.grid()
 plt.show()
 
 
-plt.plot(t_list, xc_list, label='Координта ц.т. ')
 
-plt.xlabel('Секунда полёта')
-plt.ylabel('м')
-plt.grid()
-plt.show()
 
 
 plt.plot(x_list, y_list, label='Траектория ')
@@ -391,47 +400,74 @@ plt.show()
 
 plt.plot(t_list, v_list, label='Скорость по времени')
 
-plt.xlabel('Секунда полёта')
+plt.xlabel('Время полёта, с')
 plt.ylabel('Скорость, м/c')
 plt.grid()
 plt.show()
 
 
-plt.plot(t_list, test_list, label = 'Наклон траектории')
-plt.plot(t_list, test_list2,  label = 'Тангаж')
+plt.plot(t_list, test_list, label = 'Угол наклона траектории')
+plt.plot(t_list, test_list2,  label = 'Угол тангажа')
 plt.plot(t_list, test_list3, label = 'Угол Атаки')
 plt.legend()
-plt.xlabel('Секунда полёта')
+plt.xlabel('Время полёта, с')
 plt.ylabel('Градус')
 plt.grid()
 plt.show()
 
-plt.plot(t_list, test_list4, label='Поперечная сила')
-plt.plot(t_list, test_list5, label='Продольная сила')
-plt.legend()
-plt.xlabel('Секунда полёта')
-plt.ylabel('кН')
+
+fig, ax1 = plt.subplots()
+
+color = 'tab:red'
+ax1.set_xlabel('Время полёта, с')
+ax1.set_ylabel('Продольная сила, кН ', color=color)
+ax1.plot(t_list, test_list5, color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+
+ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+color = 'tab:blue'
+ax2.set_ylabel('Поперечная сила, кН', color=color)  # we already handled the x-label with ax1
+ax2.plot(t_list, test_list4, color=color)
+ax2.tick_params(axis='y', labelcolor=color)
+
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
 plt.grid()
 plt.show()
 
-plt.plot(t_list, test_list6, label='вращение по тангажу ')
 
-plt.xlabel('Секунда полёта')
-plt.ylabel('рад/c')
+
+
+plt.plot(t_list[750:-1], test_list6[750:-1], label='вращение по тангажу ')
+
+plt.xlabel('Время полёта, с')
+plt.ylabel('град/c')
 plt.grid()
 plt.show()
 
 plt.plot(t_list, stable_list, label='Показатель устойчивости ')
 
-plt.xlabel('Секунда полёта')
+plt.xlabel('Время полёта, с')
 plt.ylabel('Показатель устойчивости %')
 plt.grid()
 plt.show()
 
-plt.plot(t_list, nx_list, label = 'Продольная перегрузка')
-plt.plot(t_list, ny_list,  label = 'Поперечная перегрузка')
-plt.legend()
-plt.xlabel('Секунда полёта')
 
+fig, ax1 = plt.subplots()
+
+color = 'tab:red'
+ax1.set_xlabel('Время полёта, с')
+ax1.set_ylabel('Продольная перегрузка ', color=color)
+ax1.plot(t_list[750:-1], nx_list[750:-1], color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+
+ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+color = 'tab:blue'
+ax2.set_ylabel('Поперечная перегрузка', color=color)  # we already handled the x-label with ax1
+ax2.plot(t_list[750:-1], ny_list[750:-1], color=color)
+ax2.tick_params(axis='y', labelcolor=color)
+
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
 plt.grid()
 plt.show()
